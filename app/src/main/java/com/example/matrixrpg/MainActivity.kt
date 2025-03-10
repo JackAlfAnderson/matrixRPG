@@ -66,6 +66,10 @@ class MainActivity : ComponentActivity() {
                         )
                     )
                 }
+                //boolean
+                var isDialogShow by remember {
+                    mutableStateOf(false)
+                }
 
                 //livings values
                 val playerValue by remember {
@@ -94,36 +98,30 @@ class MainActivity : ComponentActivity() {
                     )
                 }
                 //enemy
-                var enemy by remember {
+                var listOfEnemies by remember {
                     mutableStateOf(
-                        Enemy(
-                            x = 2,
-                            y = 2,
-                            name = "Chert",
-                            10,
-                            10
-                        )
-                    )
-                }
-                var enemy1 by remember {
-                    mutableStateOf(
-                        Enemy(
-                            x = 3,
-                            y = 2,
-                            name = "Chert",
-                            10,
-                            10
-                        )
-                    )
-                }
-                var enemy2 by remember {
-                    mutableStateOf(
-                        Enemy(
-                            x = 2,
-                            y = 4,
-                            name = "Chert",
-                            10,
-                            10
+                        mutableListOf(
+                            Enemy(
+                                x = 2,
+                                y = 2,
+                                name = "Chert",
+                                10,
+                                10
+                            ),
+                            Enemy(
+                                x = 3,
+                                y = 2,
+                                name = "Chert",
+                                10,
+                                10
+                            ),
+                            Enemy(
+                                x = 2,
+                                y = 4,
+                                name = "Chert",
+                                10,
+                                10
+                            )
                         )
                     )
                 }
@@ -137,9 +135,9 @@ class MainActivity : ComponentActivity() {
                     worldMap = newMap
                 }
                 fun updateLivings(){
-                    updateWorldMap(enemy.x, enemy.y, 2)
-                    updateWorldMap(enemy1.x, enemy1.y, 2)
-                    updateWorldMap(enemy2.x, enemy2.y, 2)
+                    listOfEnemies.forEach {
+                        updateWorldMap(it.x, it.y, 2)
+                    }
                 }
                 LaunchedEffect(Unit) {
                     updateWorldMap(player.x, player.y, 1)
@@ -149,43 +147,46 @@ class MainActivity : ComponentActivity() {
 
                 val interactionSource = remember { MutableInteractionSource() }
 
-                Dialog(
-                    onDismissRequest = {
+                if(isDialogShow){
+                    Dialog(
+                        onDismissRequest = {
 
-                    }
-                ) {
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFF333536)
-                        ),
-                        modifier = Modifier
-                            .size(350.dp),
-                        shape = RoundedCornerShape(24.dp)
+                        }
                     ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0xFF333536)
+                            ),
+                            modifier = Modifier
+                                .size(350.dp),
+                            shape = RoundedCornerShape(24.dp)
                         ) {
-                            Text("Вы наткнулись на врага!", color = Color.White, fontSize = 28.sp, textAlign = TextAlign.Center)
-                            Spacer(Modifier.height(40.dp))
-                            Text("Готовьтесь к бою!",color = Color.White, fontSize = 22.sp)
-                            Spacer(Modifier.height(40.dp))
-                            Button(
-                                onClick = {
-
-                                },
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 60.dp).height(50.dp),
-                                shape = RoundedCornerShape(8.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF5C5F5B)
-                                )
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Text("Атака")
+                                Text("Вы наткнулись на врага!", color = Color.White, fontSize = 28.sp, textAlign = TextAlign.Center)
+                                Spacer(Modifier.height(40.dp))
+                                Text("Готовьтесь к бою!",color = Color.White, fontSize = 22.sp)
+                                Spacer(Modifier.height(40.dp))
+                                Button(
+                                    onClick = {
+
+                                        isDialogShow = false
+                                    },
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 60.dp).height(50.dp),
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF5C5F5B)
+                                    )
+                                ) {
+                                    Text("Атака")
+                                }
                             }
                         }
-                    }
 
+                    }
                 }
                 Column(
                     Modifier.fillMaxSize().background(background),
@@ -220,30 +221,37 @@ class MainActivity : ComponentActivity() {
                                                     contentDescription = null,
                                                     tint = Color.Unspecified
                                                 )
-                                                // isPlayerHere
                                                 if (playerValue == worldMap[rowIndex][colIndex]) {
+                                                    // Draw the player
                                                     Icon(
                                                         painter = painterResource(R.drawable.playersquare),
                                                         contentDescription = null,
                                                         tint = Color.Unspecified,
                                                         modifier = Modifier.size(24.dp)
                                                     )
-                                                }
-                                                // isEnemyHere
-                                                if (enemyValue == worldMap[rowIndex][colIndex]){
-                                                    Icon(
-                                                        painter = painterResource(R.drawable.enemy),
-                                                        contentDescription = null,
-                                                        tint = Color.Unspecified,
-                                                        modifier = Modifier.size(24.dp)
-                                                    )
-                                                }
-                                                if (
-                                                    enemyValue == worldMap[rowIndex][colIndex] &&
-                                                    playerValue  == worldMap[rowIndex][colIndex]){
-                                                    
+
+                                                    // Check if any enemy is on the same cell as the player
+                                                    val isEnemyOnPlayerCell = listOfEnemies.any { enemy ->
+                                                        enemy.x == colIndex && enemy.y == rowIndex
+                                                    }
+
+                                                    if (isEnemyOnPlayerCell) {
+                                                        isDialogShow = true
+                                                    }
                                                 }
 
+                                                // Check if an enemy is here
+                                                listOfEnemies.forEach { enemy ->
+                                                    if (enemy.x == colIndex && enemy.y == rowIndex) {
+                                                        // Draw the enemy
+                                                        Icon(
+                                                            painter = painterResource(R.drawable.enemy),
+                                                            contentDescription = null,
+                                                            tint = Color.Unspecified,
+                                                            modifier = Modifier.size(24.dp)
+                                                        )
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -355,7 +363,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
 
 fun printMatrix(matrix: List<MutableList<Int>>) {
     for (row in matrix) {
