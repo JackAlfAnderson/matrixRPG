@@ -1,23 +1,30 @@
 package com.example.matrixrpg.domain.models
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.example.matrixrpg.errorPrint
 
 class Player(
     var x: Int,
     var y: Int,
     val name: String,
-    var hp: Int,
+    hp: Int,
     var dmg: Int,
     var lvl: Int,
     var xp: Int,
     var gold: Int
 ) {
+
+    var hp by mutableStateOf(hp)
+
     // Метод для атаки врага
     fun attack(enemy: Enemy) {
-        println("$name атакует ${enemy.name} и наносит $dmg урона!")
+
         enemy.takeDamage(dmg)
         if (!enemy.isAlive()) {
-            println("${enemy.name} повержен!")
+
         }
     }
 
@@ -52,5 +59,14 @@ class Player(
         } else {
             errorPrint()
         }
+    }
+
+    fun takeDamage(damage: Int) {
+        hp -= damage
+        if (hp < 0) hp = 0
+    }
+
+    fun isAlive(): Boolean {
+        return hp > 0
     }
 }

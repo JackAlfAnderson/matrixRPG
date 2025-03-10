@@ -76,9 +76,7 @@ fun WorldMap() {
                 }
             }
         }
-
     }
-
 }
 
 @Preview
