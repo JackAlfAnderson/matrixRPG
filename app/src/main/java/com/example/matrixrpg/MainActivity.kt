@@ -83,6 +83,15 @@ class MainActivity : ComponentActivity() {
                 val enemyValue by remember { mutableStateOf(2) }
                 var currentEnemy by remember { mutableStateOf(mutableListOf<Enemy>()) }
 
+                var abilities = listOf(
+                    "Poison",
+                    "Berserk",
+                    "Heal",
+                    "Shield",
+                    "Stun",
+                    "CriticalStrike"
+                )
+
                 var player by remember {
                     mutableStateOf(
                         Player(
@@ -93,10 +102,16 @@ class MainActivity : ComponentActivity() {
                             dmg = 20,
                             lvl = 10,
                             xp = 10,
-                            gold = 10
+                            gold = 10,
+                            ability = abilities[0]
                         )
                     )
                 }
+                // Функция для использования способности
+                fun useAbility() {
+                    player.useAbility(currentEnemy[0])
+                }
+
                 var listOfEnemies by remember {
                     mutableStateOf(
                         mutableListOf(
@@ -364,11 +379,9 @@ class MainActivity : ComponentActivity() {
                                     player = player,
                                     enemy = currentEnemy[0],
                                     onAttack = { attack() },
-                                    onDefend = { /* Пока не реализовано */ },
-                                    onUseItem = { /* Пока не реализовано */ },
-                                    onPlayerDead = {
-                                        playerDead()
-                                    }
+                                    onAbility = { useAbility() },
+                                    onUseItem = {},
+                                    onPlayerDead = { playerDead() }
                                 )
                             }
 
@@ -411,7 +424,7 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             }
-                            if (isWastedDialogVisible){
+                            if (isWastedDialogVisible) {
                                 Dialog(onDismissRequest = {}) {
                                     Card(
                                         colors = CardDefaults.cardColors(containerColor = Color(0xFF333536)),

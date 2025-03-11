@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.example.matrixrpg.errorPrint
+import kotlin.math.max
+import kotlin.math.min
 
 class Player(
     var x: Int,
@@ -14,55 +16,110 @@ class Player(
     var dmg: Int,
     var lvl: Int,
     var xp: Int,
-    var gold: Int
+    var gold: Int,
+    var ability: String = "None" // Способность игрока
 ) {
-
     var hp by mutableStateOf(hp)
+    var isBerserk by mutableStateOf(false) // Режим берсерка
+    var berserkDuration by mutableStateOf(0) // Длительность берсерка
+    var isPoisoned by mutableStateOf(false) // Яд
+    var poisonDuration by mutableStateOf(0) // Длительность яда
+    var isShielded by mutableStateOf(false) // Щит
+    var shieldAmount by mutableStateOf(0) // Количество поглощаемого урона
+    var isStunned by mutableStateOf(false) // Оглушение
+    var isCriticalStrikeActive by mutableStateOf(false) // Критический удар
+    var criticalStrikeDuration by mutableStateOf(0) // Длительность критического удара
 
     // Метод для атаки врага
     fun attack(enemy: Enemy) {
+        var damage = dmg
+        if (isBerserk) {
+            damage = (damage * 1.4).toInt() // Увеличение урона на 40%
+        }
+        if (isCriticalStrikeActive) {
+            val chance = (0..100).random()
+            if (chance <= 20) {
+                damage *= 2 // Двойной урон
+            }
+        }
+        enemy.takeDamage(damage)
+    }
 
-        enemy.takeDamage(dmg)
-        if (!enemy.isAlive()) {
-
+    // Метод для использования способности
+    fun useAbility(enemy: Enemy) {
+        when (ability) {
+            "Poison" -> poison(enemy)
+            "Berserk" -> berserkMode()
+            "Heal" -> heal()
+            "Shield" -> shield()
+            "Stun" -> stun(enemy)
+            "CriticalStrike" -> criticalStrike()
         }
     }
 
-    // Методы перемещения (остаются без изменений)
-    fun moveUp(map: Map) {
-        if (x > 0) {
-            x--
+    // Яд
+    fun poison(enemy: Enemy) {
+        enemy.isPoisoned = true
+        enemy.poisonDuration = 3
+        enemy.poisonDamage = 5
+    }
+
+    // Режим берсерка
+    fun berserkMode() {
+        isBerserk = true
+        berserkDuration = 2
+    }
+
+    // Лечение
+    fun heal() {
+        val healAmount = hp * 0.3
+        hp = min(hp + healAmount.toInt(), 100)
+    }
+
+    // Щит
+    fun shield() {
+        isShielded = true
+        shieldAmount = 20
+    }
+
+    // Оглушение
+    fun stun(enemy: Enemy) {
+        enemy.isStunned = true
+    }
+
+    // Критический удар
+    fun criticalStrike() {
+        isCriticalStrikeActive = true
+        criticalStrikeDuration = 3
+    }
+
+    // Обновление состояний
+    fun updateAbilities() {
+        if (isBerserk && berserkDuration > 0) {
+            berserkDuration--
         } else {
-            errorPrint()
+            isBerserk = false
         }
-    }
-
-    fun moveDown(map: Map) {
-        if (x < 4) {
-            x++
+        if (isCriticalStrikeActive && criticalStrikeDuration > 0) {
+            criticalStrikeDuration--
         } else {
-            errorPrint()
+            isCriticalStrikeActive = false
         }
     }
 
-    fun moveLeft(map: Map) {
-        if (y > 0) {
-            y--
-        } else {
-            errorPrint()
-        }
-    }
-
-    fun moveRight(map: Map) {
-        if (y < 4) {
-            y++
-        } else {
-            errorPrint()
-        }
-    }
-
+    // Метод для получения урона
     fun takeDamage(damage: Int) {
-        hp -= damage
+        if (isShielded) {
+            val remainingShield = max(0, shieldAmount - damage)
+            val remainingDamage = max(0, damage - shieldAmount)
+            shieldAmount = remainingShield
+            hp -= remainingDamage
+            if (shieldAmount == 0) {
+                isShielded = false
+            }
+        } else {
+            hp -= damage
+        }
         if (hp < 0) hp = 0
     }
 

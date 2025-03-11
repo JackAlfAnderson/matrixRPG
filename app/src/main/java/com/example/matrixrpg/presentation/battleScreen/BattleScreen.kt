@@ -41,7 +41,7 @@ fun BattleScreen(
     player: Player,
     enemy: Enemy,
     onAttack: () -> Unit,
-    onDefend: () -> Unit,
+    onAbility: () -> Unit,
     onUseItem: () -> Unit,
     onPlayerDead: () -> Unit
 ) {
@@ -62,20 +62,10 @@ fun BattleScreen(
         if (isPlayerAttacking) 100.dp else 180.dp,
         tween(200)
     )
-    val playerDamageQuantityAnimation by animateDpAsState(
-        if (isPlayerAttacking) 80.dp else 40.dp,
-        tween(200)
-    )
-
 
     var isEnemyAttacking by remember { mutableStateOf(false) }
     val enemyPaddingAnimation by animateDpAsState(
         if (isEnemyAttacking) 100.dp else 180.dp,
-        tween(200)
-    )
-
-    val enemyDamageQuantityAnimation by animateDpAsState(
-        if (isEnemyAttacking) 80.dp else 40.dp,
         tween(200)
     )
 
@@ -101,12 +91,12 @@ fun BattleScreen(
     LaunchedEffect(isPlayerTurn) {
         if (!isPlayerTurn) {
             delay(1000) // Задержка перед ходом врага
-            if(player.hp > 0){
+            enemy.updatePoison() // Применяем яд
+            if (player.hp > 0) {
                 enemy.attack(player)
                 enemyAnimationStart = !enemyAnimationStart
             }
             if (player.hp <= 0) {
-                // Игрок умер, перезапуск карты
                 onPlayerDead()
             } else {
                 isPlayerTurn = true
@@ -132,22 +122,6 @@ fun BattleScreen(
                         null,
                         tint = Color.Unspecified
                     )
-                }
-            }
-            Box {
-                Column(
-                    Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    if (isPlayerAttacking){
-                        Text("${player.dmg}!")
-                        Spacer(Modifier.height(playerDamageQuantityAnimation))
-                    }
-                    if (isEnemyAttacking){
-                        Text("${enemy.dmg}!")
-                        Spacer(Modifier.height(enemyDamageQuantityAnimation))
-                    }
-
                 }
             }
             Box(Modifier.padding(start = enemyPaddingAnimation)) {
@@ -265,7 +239,7 @@ fun BattleScreen(
                         .clickable(
                             enabled = isPlayerTurn && !isActionSelected,
                             onClick = {
-                                onDefend()
+                                onAbility()
                                 isActionSelected = true
                                 isPlayerTurn = false
                             }
@@ -277,7 +251,7 @@ fun BattleScreen(
                         null,
                         tint = Color.Unspecified
                     )
-                    Text("DEFEND", color = if (isPlayerTurn && !isActionSelected) Color(0xFFE9EAD3) else Color.Gray)
+                    Text("ABILITY", color = if (isPlayerTurn && !isActionSelected) Color(0xFFE9EAD3) else Color.Gray)
                 }
             }
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
@@ -286,7 +260,8 @@ fun BattleScreen(
                         .clickable(
                             enabled = isPlayerTurn && !isActionSelected,
                             onClick = {
-                                onUseItem()
+                                playerAnimationStart = !playerAnimationStart
+                                onAttack()
                                 isActionSelected = true
                                 isPlayerTurn = false
                             }
@@ -304,7 +279,6 @@ fun BattleScreen(
         }
     }
 }
-
 @Preview
 @Composable
 private fun BattleScreenPreview() {
