@@ -14,17 +14,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,8 +31,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.matrixrpg.R
 import com.example.matrixrpg.domain.models.Enemy
 import com.example.matrixrpg.domain.models.Player
@@ -50,9 +43,7 @@ fun BattleScreen(
     onAttack: () -> Unit,
     onDefend: () -> Unit,
     onUseItem: () -> Unit,
-    onBackToMap: () -> Unit,
-    onPlayerDead: () -> Unit,
-    navController: NavController
+    onPlayerDead: () -> Unit
 ) {
     var isPlayerTurn by remember { mutableStateOf(true) }
     var isActionSelected by remember { mutableStateOf(false) }
@@ -63,29 +54,39 @@ fun BattleScreen(
     val enemyHealthProgress = remember { mutableStateOf(enemy.hp / 100f) }
     val animatedEnemyProgress by animateFloatAsState(targetValue = enemyHealthProgress.value)
 
-    var animationStart by remember { mutableStateOf(false) }
-    var animationEnemyStart by remember { mutableStateOf(false) }
+    var playerAnimationStart by remember { mutableStateOf(false) }
+    var enemyAnimationStart by remember { mutableStateOf(false) }
 
     var isPlayerAttacking by remember { mutableStateOf(false) }
     val playerPaddingAnimation by animateDpAsState(
         if (isPlayerAttacking) 100.dp else 180.dp,
-        tween(100)
+        tween(200)
     )
+    val playerDamageQuantityAnimation by animateDpAsState(
+        if (isPlayerAttacking) 80.dp else 40.dp,
+        tween(200)
+    )
+
 
     var isEnemyAttacking by remember { mutableStateOf(false) }
     val enemyPaddingAnimation by animateDpAsState(
         if (isEnemyAttacking) 100.dp else 180.dp,
-        tween(100)
+        tween(200)
     )
 
-    LaunchedEffect(animationStart) {
+    val enemyDamageQuantityAnimation by animateDpAsState(
+        if (isEnemyAttacking) 80.dp else 40.dp,
+        tween(200)
+    )
+
+    LaunchedEffect(playerAnimationStart) {
         isPlayerAttacking = true
-        delay(100)
+        delay(200)
         isPlayerAttacking = false
     }
-    LaunchedEffect(animationEnemyStart) {
+    LaunchedEffect(enemyAnimationStart) {
         isEnemyAttacking = true
-        delay(100)
+        delay(200)
         isEnemyAttacking = false
     }
 
@@ -100,8 +101,10 @@ fun BattleScreen(
     LaunchedEffect(isPlayerTurn) {
         if (!isPlayerTurn) {
             delay(1000) // Задержка перед ходом врага
-            enemy.attack(player)
-            animationEnemyStart = !animationEnemyStart
+            if(player.hp > 0){
+                enemy.attack(player)
+                enemyAnimationStart = !enemyAnimationStart
+            }
             if (player.hp <= 0) {
                 // Игрок умер, перезапуск карты
                 onPlayerDead()
@@ -131,7 +134,22 @@ fun BattleScreen(
                     )
                 }
             }
+            Box {
+                Column(
+                    Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (isPlayerAttacking){
+                        Text("${player.dmg}!")
+                        Spacer(Modifier.height(playerDamageQuantityAnimation))
+                    }
+                    if (isEnemyAttacking){
+                        Text("${enemy.dmg}!")
+                        Spacer(Modifier.height(enemyDamageQuantityAnimation))
+                    }
 
+                }
+            }
             Box(Modifier.padding(start = enemyPaddingAnimation)) {
                 Icon(
                     painter = painterResource(R.drawable.enemybattleicon),
@@ -225,7 +243,7 @@ fun BattleScreen(
                         .clickable(
                             enabled = isPlayerTurn && !isActionSelected,
                             onClick = {
-                                animationStart = !animationStart
+                                playerAnimationStart = !playerAnimationStart
                                 onAttack()
                                 isActionSelected = true
                                 isPlayerTurn = false
@@ -299,7 +317,5 @@ private fun BattleScreenPreview() {
         {},
         {},
         {},
-        {},
-        rememberNavController()
     )
 }

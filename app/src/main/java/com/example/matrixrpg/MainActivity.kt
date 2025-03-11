@@ -77,6 +77,7 @@ class MainActivity : ComponentActivity() {
                 }
                 var isDialogShow by remember { mutableStateOf(false) }
                 var isVictoryDialogVisible by remember { mutableStateOf(false) }
+                var isWastedDialogVisible by remember { mutableStateOf(false) }
 
                 val playerValue by remember { mutableStateOf(1) }
                 val enemyValue by remember { mutableStateOf(2) }
@@ -137,6 +138,23 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                //Функция при смерти игрока
+                fun playerDead() {
+                    updateWorldMap(player.x, player.y, 0)
+                    player.hp = 100
+                    player.x = 0
+                    player.y = 0
+                    //сделать логику создания нового персонажа при каждом новом заходе и при каждом перезапуске
+                    updateWorldMap(player.x, player.y, 1)
+                    listOfEnemies = mutableListOf(
+                        Enemy(x = 2, y = 2, name = "Chert", 100, 10),
+                        Enemy(x = 4, y = 2, name = "Chert", 100, 10),
+                        Enemy(x = 4, y = 4, name = "Chert", 100, 10)
+                    )
+                    updateLivings()
+                    isWastedDialogVisible = true
+                }
+
                 // Функция для возврата на карту
                 fun backToMap() {
                     listOfEnemies.removeIf { enemy ->
@@ -157,7 +175,7 @@ class MainActivity : ComponentActivity() {
 
                 val interactionSource = remember { MutableInteractionSource() }
 
-                Column(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF333536), Color(0xFF5C5F5B))))) {
+                Column(Modifier.fillMaxSize().background(background)) {
                     NavHost(
                         navController,
                         startDestination = "worldMap"
@@ -203,7 +221,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                             Column(
-                                Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF333536), Color(0xFF5C5F5B)))),
+                                Modifier.fillMaxSize().background(background),
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
@@ -348,38 +366,89 @@ class MainActivity : ComponentActivity() {
                                     onAttack = { attack() },
                                     onDefend = { /* Пока не реализовано */ },
                                     onUseItem = { /* Пока не реализовано */ },
-                                    onBackToMap = { backToMap() },
                                     onPlayerDead = {
-                                        updateWorldMap(player.x, player.y, 0)
-                                        player.hp = 100
-                                        player.x = 1
-                                        player.y = 1
-                                        updateWorldMap(player.x, player.y, 1)
-                                        listOfEnemies = mutableListOf(
-                                            Enemy(x = 2, y = 2, name = "Chert", 100, 10),
-                                            Enemy(x = 4, y = 2, name = "Chert", 100, 10),
-                                            Enemy(x = 4, y = 4, name = "Chert", 100, 10)
-                                        )
-                                        updateLivings()
-                                    },
-                                    navController
+                                        playerDead()
+                                    }
                                 )
                             }
 
                             if (isVictoryDialogVisible) {
-                                AlertDialog(
-                                    onDismissRequest = { isVictoryDialogVisible = false },
-                                    title = { Text("Вы победили!") },
-                                    text = { Text("Враг повержен!") },
-                                    confirmButton = {
-                                        Button(onClick = {
-                                            isVictoryDialogVisible = false
-                                            backToMap()
-                                        }) {
-                                            Text("Вернуться на карту")
+                                Dialog(onDismissRequest = {}) {
+                                    Card(
+                                        colors = CardDefaults.cardColors(containerColor = Color(0xFF333536)),
+                                        modifier = Modifier.size(350.dp),
+                                        shape = RoundedCornerShape(24.dp)
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.fillMaxSize(),
+                                            verticalArrangement = Arrangement.Center,
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Text(
+                                                "Поздравляем!",
+                                                color = Color.White,
+                                                fontSize = 28.sp,
+                                                textAlign = TextAlign.Center
+                                            )
+                                            Spacer(Modifier.height(40.dp))
+                                            Text("Вы победили!", color = Color.White, fontSize = 22.sp)
+                                            Spacer(Modifier.height(40.dp))
+                                            Button(
+                                                onClick = {
+                                                    isVictoryDialogVisible = false
+                                                    backToMap()
+                                                },
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = 60.dp)
+                                                    .height(50.dp),
+                                                shape = RoundedCornerShape(8.dp),
+                                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5C5F5B))
+                                            ) {
+                                                Text("Вернуться на карту")
+                                            }
                                         }
                                     }
-                                )
+                                }
+                            }
+                            if (isWastedDialogVisible){
+                                Dialog(onDismissRequest = {}) {
+                                    Card(
+                                        colors = CardDefaults.cardColors(containerColor = Color(0xFF333536)),
+                                        modifier = Modifier.size(350.dp),
+                                        shape = RoundedCornerShape(24.dp)
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.fillMaxSize(),
+                                            verticalArrangement = Arrangement.Center,
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Text(
+                                                "Сочувствуем",
+                                                color = Color.White,
+                                                fontSize = 28.sp,
+                                                textAlign = TextAlign.Center
+                                            )
+                                            Spacer(Modifier.height(40.dp))
+                                            Text("Все ваши жизни были ПОТРАЧЕНЫ", color = Color.White, fontSize = 22.sp)
+                                            Spacer(Modifier.height(40.dp))
+                                            Button(
+                                                onClick = {
+                                                    isWastedDialogVisible = false
+                                                    navController.navigate("worldMap")
+                                                },
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = 60.dp)
+                                                    .height(50.dp),
+                                                shape = RoundedCornerShape(8.dp),
+                                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5C5F5B))
+                                            ) {
+                                                Text("Начать сначала")
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
