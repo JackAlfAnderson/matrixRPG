@@ -132,11 +132,38 @@ fun BattleScreen(
                 )
             }
             Box(Modifier.padding(end = playerPaddingAnimation)) {
-                Icon(
-                    painter = painterResource(R.drawable.playerbattleicon),
-                    null,
-                    tint = Color.Unspecified
-                )
+                when (player.icon){
+                    R.drawable.charactersquare -> {
+                        Icon(
+                            painter = painterResource(R.drawable.playerbattleicon),
+                            null,
+                            tint = Color.Unspecified
+                        )
+                    }
+                    R.drawable.charactertriangle -> {
+                        Icon(
+                            painter = painterResource(R.drawable.trianglebattlescreen),
+                            null,
+                            tint = Color.Unspecified
+                        )
+                    }
+                    R.drawable.charactercircle -> {
+                        Icon(
+                            painter = painterResource(R.drawable.circlebattlescreen),
+                            null,
+                            tint = Color.Unspecified
+                        )
+                    }
+                    else -> {
+                        Icon(
+                            painter = painterResource(R.drawable.playerbattleicon),
+                            null,
+                            tint = Color.Unspecified
+                        )
+                    }
+
+                }
+
             }
         }
         Spacer(Modifier.height(20.dp))
@@ -164,7 +191,7 @@ fun BattleScreen(
                             Text("HP", color = Color.White, fontSize = 12.sp)
                             Spacer(Modifier.width(6.dp))
                             LinearProgressIndicator(
-                                progress = { animatedPlayerProgress },
+                                progress = animatedPlayerProgress,
                                 modifier = Modifier
                                     .width(58.dp)
                                     .height(9.dp),
@@ -284,7 +311,7 @@ fun BattleScreen(
 private fun BattleScreenPreview() {
     BattleScreen(
         Player(
-            0, 0, "", 0, 0, 0, 0, 0
+            0, 0, "", 0, 0, 0, 0, 0, gold = 0,icon = R.drawable.charactersquare
         ),
         Enemy(0, 0, "", 0, 0),
         {},

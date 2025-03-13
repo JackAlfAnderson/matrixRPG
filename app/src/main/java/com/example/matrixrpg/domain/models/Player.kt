@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.painter.Painter
 import com.example.matrixrpg.errorPrint
 import kotlin.math.max
 import kotlin.math.min
@@ -12,12 +13,14 @@ class Player(
     var x: Int,
     var y: Int,
     val name: String,
-    hp: Int,
+    val maxHp: Int,
+    hp: Int = maxHp,
     var dmg: Int,
     var lvl: Int,
     var xp: Int,
     var gold: Int,
-    var ability: String = "None" // Способность игрока
+    var ability: String = "None",
+    var icon: Int
 ) {
     var hp by mutableStateOf(hp)
     var isBerserk by mutableStateOf(false) // Режим берсерка

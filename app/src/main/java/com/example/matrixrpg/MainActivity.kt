@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,6 +51,8 @@ import com.example.matrixrpg.domain.models.Enemy
 import com.example.matrixrpg.domain.models.Map
 import com.example.matrixrpg.domain.models.Player
 import com.example.matrixrpg.presentation.battleScreen.BattleScreen
+import com.example.matrixrpg.presentation.createPlayer.CreatePlayerScreen
+import com.example.matrixrpg.presentation.createPlayer.PlayerData
 import com.example.matrixrpg.presentation.map.WorldMap
 import com.example.matrixrpg.ui.theme.MatrixRPGTheme
 import com.example.matrixrpg.ui.theme.background
@@ -75,6 +78,7 @@ class MainActivity : ComponentActivity() {
                         )
                     )
                 }
+
                 var isDialogShow by remember { mutableStateOf(false) }
                 var isVictoryDialogVisible by remember { mutableStateOf(false) }
                 var isWastedDialogVisible by remember { mutableStateOf(false) }
@@ -98,15 +102,43 @@ class MainActivity : ComponentActivity() {
                             x = 0,
                             y = 0,
                             name = "Player",
-                            100,
-                            dmg = 20,
-                            lvl = 10,
-                            xp = 10,
-                            gold = 10,
-                            ability = abilities[0]
+                            maxHp = 10,
+                            dmg = 0,
+                            lvl = 0,
+                            xp = 0,
+                            gold = 0,
+                            ability = abilities[0],
+                            icon = R.drawable.charactersquare
                         )
                     )
                 }
+
+                //Фун для созд игрока
+                fun createPlayer(name: String, race: String){
+                    player = Player(
+                        x = 0,
+                        y = 0,
+                        name = name,
+                        maxHp = 100,
+                        dmg = 30,
+                        lvl = 1,
+                        xp = 0,
+                        gold = 0,
+                        ability = when(race){
+                            "Cube" -> abilities[1]
+                            "Circle" -> abilities[3]
+                            "Triangle" -> abilities[5]
+                            else -> {abilities[0]}
+                        },
+                        icon = when(race){
+                            "Cube" -> R.drawable.charactersquare
+                            "Circle" -> R.drawable.charactercircle
+                            "Triangle" -> R.drawable.charactertriangle
+                            else -> {R.drawable.charactersquare}
+                        }
+                    )
+                }
+
                 // Функция для использования способности
                 fun useAbility() {
                     player.useAbility(currentEnemy[0])
@@ -115,7 +147,7 @@ class MainActivity : ComponentActivity() {
                 var listOfEnemies by remember {
                     mutableStateOf(
                         mutableListOf(
-                            Enemy(x = 2, y = 2, name = "Chert", 100, 10),
+                            Enemy(x = 2, y = 2, name = "Chert", 400, 10),
                             Enemy(x = 3, y = 2, name = "Chert", 100, 10),
                             Enemy(x = 2, y = 4, name = "Chert", 100, 10)
                         )
@@ -193,7 +225,7 @@ class MainActivity : ComponentActivity() {
                 Column(Modifier.fillMaxSize().background(background)) {
                     NavHost(
                         navController,
-                        startDestination = "worldMap"
+                        startDestination = "createPlayer"
                     ) {
                         composable(route = "worldMap") {
                             if (isDialogShow) {
@@ -263,12 +295,33 @@ class MainActivity : ComponentActivity() {
                                                                 tint = Color.Unspecified
                                                             )
                                                             if (playerValue == worldMap[rowIndex][colIndex]) {
-                                                                Icon(
-                                                                    painter = painterResource(R.drawable.playersquare),
-                                                                    contentDescription = null,
-                                                                    tint = Color.Unspecified,
-                                                                    modifier = Modifier.size(24.dp)
-                                                                )
+                                                                when(player.icon){
+                                                                    R.drawable.charactersquare -> {
+                                                                        Icon(
+                                                                            painter = painterResource(R.drawable.playersquare),
+                                                                            contentDescription = null,
+                                                                            tint = Color.Unspecified,
+                                                                            modifier = Modifier.size(24.dp)
+                                                                        )
+                                                                    }
+                                                                    R.drawable.charactertriangle -> {
+                                                                        Icon(
+                                                                            painter = painterResource(R.drawable.charactertriangle),
+                                                                            contentDescription = null,
+                                                                            tint = Color.Unspecified,
+                                                                            modifier = Modifier.size(24.dp)
+                                                                        )
+                                                                    }
+                                                                    R.drawable.charactercircle -> {
+                                                                        Icon(
+                                                                            painter = painterResource(R.drawable.charactercircle),
+                                                                            contentDescription = null,
+                                                                            tint = Color.Unspecified,
+                                                                            modifier = Modifier.size(24.dp)
+                                                                        )
+                                                                    }
+                                                                }
+
                                                                 val isEnemyOnPlayerCell = remember {
                                                                     derivedStateOf {
                                                                         listOfEnemies.any { enemy ->
@@ -463,6 +516,14 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             }
+                        }
+                        composable(route = "createPlayer") {
+                            CreatePlayerScreen(
+                                createPlayer = { playerData ->
+                                    createPlayer(name = playerData.name, race = playerData.race)
+                                },
+                                navController
+                            )
                         }
                     }
                 }
