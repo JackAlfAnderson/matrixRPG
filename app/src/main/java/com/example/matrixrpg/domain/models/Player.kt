@@ -1,5 +1,6 @@
 package com.example.matrixrpg.domain.models
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,7 +24,7 @@ class Player(
     var icon: Int
 ) {
     var hp by mutableStateOf(hp)
-    var isBerserk by mutableStateOf(false) // Режим берсерка
+    var isBerserk by mutableStateOf(true) // Режим берсерка
     var berserkDuration by mutableStateOf(0) // Длительность берсерка
     var isPoisoned by mutableStateOf(false) // Яд
     var poisonDuration by mutableStateOf(0) // Длительность яда
@@ -32,12 +33,14 @@ class Player(
     var isStunned by mutableStateOf(false) // Оглушение
     var isCriticalStrikeActive by mutableStateOf(false) // Критический удар
     var criticalStrikeDuration by mutableStateOf(0) // Длительность критического удара
+    var howMuchDamahe by mutableStateOf(0) // Сколько урона нанесено
 
     // Метод для атаки врага
     fun attack(enemy: Enemy) {
         var damage = dmg
         if (isBerserk) {
             damage = (damage * 1.4).toInt() // Увеличение урона на 40%
+            Log.d("needu" , damage.toString())
         }
         if (isCriticalStrikeActive) {
             val chance = (0..100).random()
@@ -45,14 +48,19 @@ class Player(
                 damage *= 2 // Двойной урон
             }
         }
+        howMuchDamahe = damage
         enemy.takeDamage(damage)
     }
 
     // Метод для использования способности
     fun useAbility(enemy: Enemy) {
+        Log.d("needu" , ability)
         when (ability) {
             "Poison" -> poison(enemy)
-            "Berserk" -> berserkMode()
+            "Berserk" -> {
+                berserkMode()
+                Log.d("needu", "berserkchoosen")
+            }
             "Heal" -> heal()
             "Shield" -> shield()
             "Stun" -> stun(enemy)
@@ -69,14 +77,17 @@ class Player(
 
     // Режим берсерка
     fun berserkMode() {
-        isBerserk = true
-        berserkDuration = 2
+        if (!isBerserk) { // Активируем берсерк только если он не активен
+            Log.d("needu" , "Berserk is active")
+            isBerserk = true
+            berserkDuration = 2
+        }
     }
 
     // Лечение
     fun heal() {
         val healAmount = hp * 0.3
-        hp = min(hp + healAmount.toInt(), 100)
+        hp = min(hp + healAmount.toInt(), maxHp) // Используем maxHp вместо 100
     }
 
     // Щит
@@ -98,7 +109,7 @@ class Player(
 
     // Обновление состояний
     fun updateAbilities() {
-        if (isBerserk && berserkDuration > 0) {
+        if (berserkDuration > 0) {
             berserkDuration--
         } else {
             isBerserk = false

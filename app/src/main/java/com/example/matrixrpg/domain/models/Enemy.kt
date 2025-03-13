@@ -7,7 +7,8 @@ class Enemy(
     var x: Int,
     var y: Int,
     val name: String,
-    hp: Int,
+    val maxHp: Int,
+    hp: Int = maxHp,
     val dmg: Int
 ) {
     var hp by mutableStateOf(hp)

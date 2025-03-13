@@ -48,7 +48,7 @@ fun BattleScreen(
     var isPlayerTurn by remember { mutableStateOf(true) }
     var isActionSelected by remember { mutableStateOf(false) }
 
-    val playerHealthProgress = remember { mutableStateOf(player.hp / 100f) }
+    val playerHealthProgress = remember { mutableStateOf((player.hp.toFloat() / player.maxHp.toFloat()) * 100) }
     val animatedPlayerProgress by animateFloatAsState(targetValue = playerHealthProgress.value)
 
     val enemyHealthProgress = remember { mutableStateOf(enemy.hp / 100f) }
@@ -56,6 +56,20 @@ fun BattleScreen(
 
     var playerAnimationStart by remember { mutableStateOf(false) }
     var enemyAnimationStart by remember { mutableStateOf(false) }
+
+    var playerDamageAmountStart by remember { mutableStateOf(false) }
+    var enemyDamageAmountStart by remember { mutableStateOf(false) }
+
+    var isPlayerDamageAnim by remember { mutableStateOf(false) }
+    val playerAnimationOfDamageAmount by animateDpAsState(
+        if (isPlayerDamageAnim) 80.dp else 40.dp,
+        tween(200)
+    )
+    var isEnemyDamageAnim by remember { mutableStateOf(false) }
+    val enemyAnimationOfDamageAmount by animateDpAsState(
+        if (isEnemyDamageAnim) 80.dp else 40.dp,
+        tween(200)
+    )
 
     var isPlayerAttacking by remember { mutableStateOf(false) }
     val playerPaddingAnimation by animateDpAsState(
@@ -68,6 +82,16 @@ fun BattleScreen(
         if (isEnemyAttacking) 100.dp else 180.dp,
         tween(200)
     )
+    LaunchedEffect(playerDamageAmountStart) {
+        isPlayerDamageAnim = true
+        delay(200)
+        isPlayerDamageAnim = false
+    }
+    LaunchedEffect(enemyDamageAmountStart) {
+        isEnemyDamageAnim = true
+        delay(200)
+        isEnemyDamageAnim = false
+    }
 
     LaunchedEffect(playerAnimationStart) {
         isPlayerAttacking = true
@@ -81,19 +105,22 @@ fun BattleScreen(
     }
 
     LaunchedEffect(player.hp) {
-        playerHealthProgress.value = player.hp / 100f
+        playerHealthProgress.value = player.hp.toFloat() / player.maxHp.toFloat()
     }
 
+    // Обновление прогресса HP врага
     LaunchedEffect(enemy.hp) {
-        enemyHealthProgress.value = enemy.hp / 100f
+        enemyHealthProgress.value = enemy.hp.toFloat() / enemy.maxHp.toFloat()
     }
-
     LaunchedEffect(isPlayerTurn) {
         if (!isPlayerTurn) {
             delay(1000) // Задержка перед ходом врага
             enemy.updatePoison() // Применяем яд
+            player.updateAbilities() // Обновляем состояния игрока
+
             if (player.hp > 0) {
                 enemy.attack(player)
+                enemyDamageAmountStart = !enemyDamageAmountStart
                 enemyAnimationStart = !enemyAnimationStart
             }
             if (player.hp <= 0) {
@@ -104,7 +131,6 @@ fun BattleScreen(
             }
         }
     }
-
     Column(
         Modifier
             .fillMaxSize()
@@ -122,6 +148,16 @@ fun BattleScreen(
                         null,
                         tint = Color.Unspecified
                     )
+                }
+            }
+            Box(Modifier.padding(bottom = playerAnimationOfDamageAmount)) {
+                if (isPlayerDamageAnim){
+                    Text(player.howMuchDamahe.toString()+"!", )
+                }
+            }
+            Box(Modifier.padding(bottom = enemyAnimationOfDamageAmount)) {
+                if (isEnemyDamageAnim){
+                    Text(enemy.dmg.toString()+"!", )
                 }
             }
             Box(Modifier.padding(start = enemyPaddingAnimation)) {
@@ -191,7 +227,7 @@ fun BattleScreen(
                             Text("HP", color = Color.White, fontSize = 12.sp)
                             Spacer(Modifier.width(6.dp))
                             LinearProgressIndicator(
-                                progress = animatedPlayerProgress,
+                                progress = {animatedPlayerProgress},
                                 modifier = Modifier
                                     .width(58.dp)
                                     .height(9.dp),
@@ -244,6 +280,7 @@ fun BattleScreen(
                         .clickable(
                             enabled = isPlayerTurn && !isActionSelected,
                             onClick = {
+                                playerDamageAmountStart = !playerDamageAmountStart
                                 playerAnimationStart = !playerAnimationStart
                                 onAttack()
                                 isActionSelected = true
@@ -313,7 +350,7 @@ private fun BattleScreenPreview() {
         Player(
             0, 0, "", 0, 0, 0, 0, 0, gold = 0,icon = R.drawable.charactersquare
         ),
-        Enemy(0, 0, "", 0, 0),
+        Enemy(0, 0, "", 0, 0, 0),
         {},
         {},
         {},

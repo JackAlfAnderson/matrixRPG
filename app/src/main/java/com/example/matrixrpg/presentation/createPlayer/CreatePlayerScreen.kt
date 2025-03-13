@@ -214,7 +214,7 @@ fun CreatePlayerScreen(
                     createPlayer(
                         PlayerData(
                             name = playerName, race = when (pagerState.currentPage) {
-                                0 -> "Square"
+                                0 -> "Cube"
                                 1 -> "Triangle"
                                 2 -> "Circle"
                                 else -> "Square"

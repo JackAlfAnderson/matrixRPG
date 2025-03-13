@@ -1,6 +1,7 @@
 package com.example.matrixrpg
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -115,17 +116,18 @@ class MainActivity : ComponentActivity() {
 
                 //Фун для созд игрока
                 fun createPlayer(name: String, race: String){
+                    Log.d("needu", race)
                     player = Player(
                         x = 0,
                         y = 0,
                         name = name,
-                        maxHp = 100,
+                        maxHp = 200,
                         dmg = 30,
                         lvl = 1,
                         xp = 0,
                         gold = 0,
                         ability = when(race){
-                            "Cube" -> abilities[1]
+                            "Cube" -> "Berserk"
                             "Circle" -> abilities[3]
                             "Triangle" -> abilities[5]
                             else -> {abilities[0]}
@@ -139,6 +141,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
+
                 // Функция для использования способности
                 fun useAbility() {
                     player.useAbility(currentEnemy[0])
@@ -147,9 +150,9 @@ class MainActivity : ComponentActivity() {
                 var listOfEnemies by remember {
                     mutableStateOf(
                         mutableListOf(
-                            Enemy(x = 2, y = 2, name = "Chert", 400, 10),
-                            Enemy(x = 3, y = 2, name = "Chert", 100, 10),
-                            Enemy(x = 2, y = 4, name = "Chert", 100, 10)
+                            Enemy(x = 2, y = 2, name = "Chert", maxHp = 400, dmg = 10),
+                            Enemy(x = 3, y = 2, name = "Chert", 100, dmg = 10),
+                            Enemy(x = 2, y = 4, name = "Chert", 100, dmg = 10)
                         )
                     )
                 }
@@ -194,9 +197,9 @@ class MainActivity : ComponentActivity() {
                     //сделать логику создания нового персонажа при каждом новом заходе и при каждом перезапуске
                     updateWorldMap(player.x, player.y, 1)
                     listOfEnemies = mutableListOf(
-                        Enemy(x = 2, y = 2, name = "Chert", 100, 10),
-                        Enemy(x = 4, y = 2, name = "Chert", 100, 10),
-                        Enemy(x = 4, y = 4, name = "Chert", 100, 10)
+                        Enemy(x = 2, y = 2, name = "Chert", 100, dmg = 10),
+                        Enemy(x = 4, y = 2, name = "Chert", 100, dmg = 10),
+                        Enemy(x = 4, y = 4, name = "Chert", 100, dmg = 10)
                     )
                     updateLivings()
                     isWastedDialogVisible = true
